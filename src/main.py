@@ -100,6 +100,20 @@ def get_file():
                         print(e)
                         print(url)
 
+# 获取res/audio目录下的所有mp3格式文件，并调用ffmpeg编码为opus编码器ogg格式
+def get_opus(crrDir):
+    # 读取res/audio下的所有mp3文件
+    for file in os.listdir(crrDir):
+        if file.endswith('.mp3'):
+            print(file)
+            # 调用ffmpeg编码ogg格式
+            os.system('ffmpeg -i '+crrDir+'/{} -c:a libopus -b:a 96K  '.format(file) +crrDir+'/{}.ogg'.format(file.replace('.mp3', '')))
+
 # main函数，请按需调用上面的函数
 if __name__ == '__main__':
-    pass
+    # 获取res/audio下所有子文件夹
+    for dir in os.listdir('./res/audio'):
+        # 获取子文件夹的路径
+        crrDir = './res/audio/{}'.format(dir)
+        get_opus(crrDir)
+            
