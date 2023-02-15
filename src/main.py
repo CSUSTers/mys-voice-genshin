@@ -3,6 +3,8 @@ import os
 import requests
 import re
 
+import urllib
+
 # 读取characterInfo.txt文件，放入字符串中
 def read_file():
     with open('./res/characterInfo.txt', 'r', encoding='UTF-8') as f:
@@ -109,11 +111,41 @@ def get_opus(crrDir):
             # 调用ffmpeg编码ogg格式
             os.system('ffmpeg -i '+crrDir+'/{} -c:a libopus -b:a 96K  '.format(file) +crrDir+'/{}.ogg'.format(file.replace('.mp3', '')))
 
+# 创建一个sqlLite数据库，用于保存csv中的数据
+def create_db():
+    import sqlite3
+    conn = sqlite3.connect('./db/character.db')
+    c = conn.cursor()
+    # 创建一个表，用于保存角色的语音
+    c.execute('''CREATE TABLE character
+            (id integer primary key autoincrement, character text, topic text, text text, audio text)''')
+    conn.commit()
+    conn.close()
+
+# 将csv中的数据导入到数据库中
+def insert_db():
+    import sqlite3
+    conn = sqlite3.connect('./db/character.db')
+    c = conn.cursor()
+    # 读取res/csv下的所有csv文件
+    for file in os.listdir('./res/csv'):
+        if file.endswith('.csv'):
+            print(file)
+            # 使用pandas读取csv文件
+            import pandas as pd
+            df = pd.read_csv('./res/csv/{}'.format(file))
+            # 遍历csv文件，将数据插入到数据库中
+            for i in range(len(df)):
+                sql = "INSERT INTO character (character, topic, text, audio) VALUES ('{}', '{}', '{}', '{}')".format(file.replace('.csv', ''), df['topic'][i], df['text'][i], "https://raw.githubusercontent.com/CSUSTers/mys-voice-genshin/main/res/audio/{}/{}".format(urllib.parse.quote(file.replace('.csv', '')),str(df['audio'][i]).split('/')[-1].replace('.mp3', '.ogg')))
+                print(sql)
+                c.execute(sql)
+            
+    conn.commit()
+    conn.close()
+
 # main函数，请按需调用上面的函数
 if __name__ == '__main__':
-    # 获取res/audio下所有子文件夹
-    for dir in os.listdir('./res/audio'):
-        # 获取子文件夹的路径
-        crrDir = './res/audio/{}'.format(dir)
-        get_opus(crrDir)
-            
+    # 创建数据库，并导入数据
+    create_db()
+    insert_db()
+    
