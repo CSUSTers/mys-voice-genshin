@@ -109,7 +109,7 @@ def get_opus(crrDir):
         if file.endswith('.mp3'):
             print(file)
             # 调用ffmpeg编码ogg格式
-            os.system('ffmpeg -i '+crrDir+'/{} -c:a libopus -b:a 96K  '.format(file) +crrDir+'/{}.ogg'.format(file.replace('.mp3', '')))
+            os.system('ffmpeg -i '+crrDir+'/{} -c:a libopus -b:a 96K  '.format(file) +crrDir+'/{}.ogg -y'.format(file.replace('.mp3', '')))
 
 # 创建一个sqlLite数据库，用于保存csv中的数据
 def create_db():
@@ -145,7 +145,8 @@ def insert_db():
 
 # main函数，请按需调用上面的函数
 if __name__ == '__main__':
-    # 创建数据库，并导入数据
-    create_db()
-    insert_db()
+
+    # 用get_opus函数将res/audio目录下的所有mp3文件转换为ogg格式
+    for file in os.listdir('./res/audio'):
+        get_opus('./res/audio/{}'.format(file))    
     
